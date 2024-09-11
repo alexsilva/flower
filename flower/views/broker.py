@@ -16,29 +16,26 @@ class BrokerView(BaseHandler):
 
     @method_decorator(login_required_admin)
     def get(self, request):
-        app = self.capp
-        broker_options = app.conf.BROKER_TRANSPORT_OPTIONS
-        http_api = None
-
-        from celery.backends.amqp import AMQPBackend
-        if isinstance(app.backend, AMQPBackend) and app.options.broker_api:
-            http_api = app.options.broker_api
-
+        broker_options = self.capp.conf.BROKER_TRANSPORT_OPTIONS
         try:
-            broker = Broker(app.connection().as_uri(include_password=True),
+            http_api = self.settings.broker_api
+        except AttributeError:
+            http_api = None
+        try:
+            broker = Broker(self.capp.connection().as_uri(include_password=True),
                             http_api=http_api, broker_options=broker_options)
         except NotImplementedError:
-            return self.write_error(404, message="'%s' broker is not supported" % app.transport)
+            return self.write_error(404, message="'%s' broker is not supported" % self.capp.transport)
 
         # noinspection PyBroadException
         try:
             queue_names = ControlHandler.get_active_queue_names()
             if not queue_names:
-                queue_names = {app.conf.CELERY_DEFAULT_QUEUE} | \
-                              set([q.name for q in app.conf.CELERY_QUEUES or [] if q.name])
+                queue_names = {self.capp.conf.CELERY_DEFAULT_QUEUE} | \
+                              set([q.name for q in self.capp.conf.CELERY_QUEUES or [] if q.name])
             queues = list(broker.queues(sorted(queue_names)))
 
-        except kombu.exceptions.OperationalError as e:
+        except kombu.exceptions.OperationalError as exc:
             return self.write_error(500, message="Unable to connect to broker",
                                     exc_info=sys.exc_info())
         except Exception:
@@ -47,6 +44,6 @@ class BrokerView(BaseHandler):
 
         return self.render("flower/broker.html",
                            context={
-                               'broker_url': app.connection().as_uri(),
+                               'broker_url': self.capp.connection().as_uri(),
                                'queues': queues
                            })
