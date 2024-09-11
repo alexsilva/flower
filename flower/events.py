@@ -95,22 +95,26 @@ class Events(threading.Thread):
             else:
                 raise
 
+    def _get_server(self):
+        """Starts the rpc server that exposes the 'state' object"""
+        server = ThreadedServer(
+            self.service,
+            hostname=self.options.rpc_host,
+            port=self.options.rpc_port,
+            auto_register=False,
+            logger=logger,
+            protocol_config={
+                'allow_public_attrs': True,
+                'allow_pickle': True,
+                'allow_all_attrs': True
+            }
+        )
+        return server
+
     @cached_property
     def server(self):
         """Starts the rpc server that exposes the 'state' object"""
-        server = ThreadedServer(
-                self.service,
-                hostname=self.options.rpc_host,
-                port=self.options.rpc_port,
-                auto_register=False,
-                logger=logger,
-                protocol_config={
-                    'allow_public_attrs': True,
-                    'allow_pickle': True,
-                    'allow_all_attrs': True
-                }
-        )
-        return server
+        return self._get_server()
 
     def start(self):
         try:
