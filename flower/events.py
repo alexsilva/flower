@@ -24,13 +24,6 @@ class CeleryStateService(rpyc.Service):
     def exposed_get_state(self):
         return self.state
 
-    def on_connect(self, conn):
-        conn._config.update({
-            'allow_public_attrs': True,
-            'allow_pickle': True,
-            'allow_all_attrs': True
-        })
-
 
 class EventsState(State):
     # EventsState object is created and accessed only from ioloop thread
@@ -108,7 +101,12 @@ class Events(threading.Thread):
                 hostname=self.options.rpc_host,
                 port=self.options.rpc_port,
                 auto_register=False,
-                logger=logger
+                logger=logger,
+                protocol_config={
+                    'allow_public_attrs': True,
+                    'allow_pickle': True,
+                    'allow_all_attrs': True
+                }
         )
         self.server.start()
         return self.server
