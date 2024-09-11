@@ -1,7 +1,6 @@
 celery>=4.3.0
 humanize>=2.3.0
 pytz
-futures; python_version=="2.7"
 django-jinja
 jinja2
 rpyc
