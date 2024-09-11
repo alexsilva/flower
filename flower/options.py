@@ -8,7 +8,7 @@ from rpyc.utils.classic import DEFAULT_SERVER_PORT
 from flower.events import Events
 
 
-class Options(object):
+class Options:
     ns_local = threading.local()
 
     def __init__(self, namespace=None):

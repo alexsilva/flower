@@ -31,7 +31,7 @@ class TaskView(BaseHandler):
 
 
 @total_ordering
-class Comparable(object):
+class Comparable:
     """
     Compare two objects, one or more of which may be None.  If one of the
     values is None, the other will be deemed greater.

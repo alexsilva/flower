@@ -22,7 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class BrokerBase(object):
+class BrokerBase:
     def __init__(self, broker_url, *args, **kwargs):
         purl = urlparse(broker_url)
         self.host = purl.hostname
@@ -160,7 +160,7 @@ class RedisSocket(RedisBase):
                                  password=self.password)
 
 
-class Broker(object):
+class Broker:
     def __new__(cls, broker_url, *args, **kwargs):
         scheme = urlparse(broker_url).scheme
         if scheme == 'amqp':

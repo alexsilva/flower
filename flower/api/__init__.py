@@ -1,6 +1,6 @@
 
 
-class BaseWebSocketHandler(object):
+class BaseWebSocketHandler:
     # listeners = [], should be created in derived class
 
     listeners = []

@@ -59,7 +59,7 @@ class EventsState(State):
         return super(EventsState, self).event(event)
 
 
-class RpcClient(object):
+class RpcClient:
 
     def __init__(self, service):
         self.service = service
@@ -77,7 +77,7 @@ class RpcClient(object):
         return factory.connect(host, port, self.service, ipv6=ipv6, keepalive=keepalive)
 
 
-class Events(object):
+class Events:
 
     rpc_client_connection = None
 
