@@ -75,12 +75,12 @@ class Events(threading.Thread):
         self.state = EventsState()
         self.options = options
         self.app = app
-        self.server = None
 
         self.service = classpartial(CeleryStateService, self.state)
         self.client = RpcClient(self.service)
 
     def _get_connection(self):
+        """Client connection to rpc server"""
         return self.client.connect(self.options.rpc_host, port=self.options.rpc_port)
 
     def get_remote_state(self, retry=False):
