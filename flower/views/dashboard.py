@@ -21,7 +21,7 @@ class DashboardView(BaseHandler):
         refresh = self.get_argument('refresh', default=False, type=bool)
         status = self.get_argument('status', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
-        app = self.settings.app
+        app = self.capp
 
         # When rpc fails to connect (check the flower_events command is running).
         try:
