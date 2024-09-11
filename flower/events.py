@@ -5,6 +5,7 @@ import time
 import rpyc
 from celery.events import EventReceiver
 from celery.events.state import State
+from django.utils.functional import cached_property
 from rpyc.utils import factory
 from rpyc.utils.classic import DEFAULT_SERVER_PORT
 from rpyc.utils.helpers import classpartial
@@ -94,9 +95,10 @@ class Events(threading.Thread):
             else:
                 raise
 
-    def start_server(self):
+    @cached_property
+    def server(self):
         """Starts the rpc server that exposes the 'state' object"""
-        self.server = ThreadedServer(
+        server = ThreadedServer(
                 self.service,
                 hostname=self.options.rpc_host,
                 port=self.options.rpc_port,
@@ -108,8 +110,17 @@ class Events(threading.Thread):
                     'allow_all_attrs': True
                 }
         )
+        return server
+
+    def start(self):
+        try:
+            self.enable_events()
+        except Exception as e:
+            logger.debug("Failed to enable events: '%s'", e)
+        # starts the events thread
+        super().start()
+        # start the rpc server
         self.server.start()
-        return self.server
 
     def run(self):
         try_interval = 1
