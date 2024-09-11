@@ -21,11 +21,11 @@ from ..utils import bugreport, prepend_url
 
 class BaseHandler(View):
     template_engine = 'jinja2'
+    settings = options
 
     def __init__(self, *args, **kwargs):
         super(BaseHandler, self).__init__(*args, **kwargs)
         self.url_prefix = reverse("flower:main").rstrip(' / ')
-        self.settings = options
 
     def render(self, template_name, context=None, **kwargs):
         if context is None:
