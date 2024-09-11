@@ -10,7 +10,6 @@ from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.functional import cached_property
-from django.utils.six import string_types
 from django.views.generic import View
 from rpyc import BaseNetref
 
@@ -112,7 +111,7 @@ class BaseHandler(View):
 
     def get_argument(self, name, default=None, strip=True, type=None):
         arg = getattr(self.request, self.request.method).get(name, default)
-        if isinstance(arg, string_types) and strip:
+        if isinstance(arg, (str, bytes)) and strip:
             arg = arg.strip()
         if type is not None:
             try:
