@@ -1,6 +1,4 @@
 # coding=utf-8
-from __future__ import absolute_import, print_function
-
 import os
 
 project_name = os.path.basename(os.path.dirname(os.path.abspath(__file__)))

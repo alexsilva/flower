@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import logging
 
 from flower.utils import login_required_admin

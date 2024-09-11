@@ -1,6 +1,7 @@
-from __future__ import absolute_import
-
-from django.conf.urls import url, include
+try:
+    from django.urls import re_path as url, include
+except ImportError:
+    from django.conf.urls import url, include
 from django.views.decorators.cache import never_cache
 
 from .api import control

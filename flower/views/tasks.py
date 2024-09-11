@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import copy
 import logging
 from functools import total_ordering
