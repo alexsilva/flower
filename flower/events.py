@@ -2,19 +2,15 @@ import collections
 import logging
 import time
 
-import gevent.monkey
 import rpyc
 from celery.events import EventReceiver
 from celery.events.state import State
 from rpyc.utils import factory
 from rpyc.utils.classic import DEFAULT_SERVER_PORT
 from rpyc.utils.helpers import classpartial
-from rpyc.utils.server import GeventServer
-
-try:
-    from collections import Counter
-except ImportError:
-    from .utils.backports.collections import Counter
+from rpyc.utils.server import ThreadedServer
+from collections import Counter
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +73,11 @@ class RpcClient:
         return factory.connect(host, port, self.service, ipv6=ipv6, keepalive=keepalive)
 
 
-class Events:
-
-    rpc_client_connection = None
+class Events(threading.Thread):
 
     def __init__(self, app, options):
+        super().__init__()
+
         self.state = EventsState()
         self.options = options
         self.app = app
@@ -90,34 +86,34 @@ class Events:
         self.service = classpartial(CeleryStateService, self.state)
         self.client = RpcClient(self.service)
 
+    def _get_connection(self):
+        return self.client.connect(self.options.rpc_host, port=self.options.rpc_port)
+
     def get_remote_state(self, retry=False):
-        if self.rpc_client_connection is None or retry:
-            self.rpc_client_connection = self.client.connect(self.options.rpc_host,
-                                                             port=self.options.rpc_port)
+        """Connects to the server started by 'start_server'"""
+        conn = self._get_connection()
         try:
-            return self.rpc_client_connection.root.get_state()
+            return conn.root.get_state()
         except EOFError:
             if not retry:
+                conn.close()
                 return self.get_remote_state(retry=True)
             else:
                 raise
 
-    def start_rpc(self):
-        self.server = GeventServer(self.service,
-                                   hostname=self.options.rpc_host,
-                                   port=self.options.rpc_port,
-                                   auto_register=False,
-                                   logger=logger)
-        self.server._listen()
-        gevent.spawn(self.server.start)
+    def start_server(self):
+        """Starts the rpc server that exposes the 'state' object"""
+        self.server = ThreadedServer(
+                self.service,
+                hostname=self.options.rpc_host,
+                port=self.options.rpc_port,
+                auto_register=False,
+                logger=logger
+        )
+        self.server.start()
         return self.server
 
-    def __del__(self):
-        if self.rpc_client_connection is not None:
-            self.rpc_client_connection.close()
-
     def run(self):
-        self.start_rpc()
         try_interval = 1
         while True:
             try:
@@ -137,8 +133,7 @@ class Events:
                 time.sleep(try_interval)
 
     def enable_events(self):
-        # Periodically enable events for workers
-        # launched after flower
+        # Periodically enable events for workers launched after flower
         try:
             self.app.control.enable_events()
         except Exception as e:
