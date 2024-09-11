@@ -24,9 +24,11 @@ class Options:
 
     @property
     def state(self):
-        if not hasattr(self.ns_local, "events"):
+        if (state := getattr(self.ns_local, "state", None)) is None:
             self.ns_local.events = Events(self.app, self)
-        return self.ns_local.events.get_remote_state()
+            # The tread connects only once per run
+            self.ns_local.state = state = self.ns_local.events.get_remote_state()
+        return state
 
 
 options = Options('flower')
