@@ -22,12 +22,27 @@ class Options:
         value = getattr(settings, self.namespace_with(name), default)
         setattr(self, name, value)
 
+    @staticmethod
+    def _is_valid_state(state) -> str:
+        """Validates whether the 'state' object represents an active connection"""
+        try:
+            dir(state)
+        except EOFError:
+            is_valid = False
+        else:
+            is_valid = True
+        return is_valid
+
     @property
     def state(self):
-        if (state := getattr(self.ns_local, "state", None)) is None:
-            self.ns_local.events = Events(self.app, self)
+        if (events := getattr(self.ns_local, 'events', None)) is None:
+            self.ns_local.events = events = Events(self.app, self)
+        if state := getattr(self.ns_local, "state", None):
+            if not self._is_valid_state(state):
+                state = None
+        if state is None:
             # The tread connects only once per run
-            self.ns_local.state = state = self.ns_local.events.get_remote_state()
+            self.ns_local.state = state = events.get_remote_state()
         return state
 
 
