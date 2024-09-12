@@ -24,7 +24,7 @@ def get_requirements(filename):
 
 
 classes = """
-    Development Status :: 4 - Beta
+    Development Status :: 5 - Beta
     Intended Audience :: Developers
     License :: OSI Approved :: BSD License
     Topic :: System :: Distributed Computing
